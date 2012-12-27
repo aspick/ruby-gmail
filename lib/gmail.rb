@@ -1,23 +1,46 @@
 require 'net/imap'
+require 'gmail_xoauth'
 
 class Gmail
   VERSION = '0.0.9'
 
   class NoLabel < RuntimeError; end
 
+  # ##################################
+  # #  Gmail.new(username, password)
+  # ##################################
+  # def initialize(username, password)
+  #   # This is to hide the username and password, not like it REALLY needs hiding, but ... you know.
+  #   # Could be helpful when demoing the gem in irb, these bits won't show up that way.
+  #   class << self
+  #     class << self
+  #       attr_accessor :username, :password
+  #     end
+  #   end
+  #   meta.username = username =~ /@/ ? username : username + '@gmail.com'
+  #   meta.password = password
+  #   @imap = Net::IMAP.new('imap.gmail.com',993,true,nil,false)
+  #   if block_given?
+  #     login # This is here intentionally. Normally, we get auto logged-in when first needed.
+  #     yield self
+  #     logout
+  #   end
+  # end
+
   ##################################
-  #  Gmail.new(username, password)
+  #  Gmail.new(access_token)
   ##################################
-  def initialize(username, password)
+  def initialize(user_name,access_token)
     # This is to hide the username and password, not like it REALLY needs hiding, but ... you know.
     # Could be helpful when demoing the gem in irb, these bits won't show up that way.
     class << self
       class << self
-        attr_accessor :username, :password
+        attr_accessor :user_name # gmail address 
+        attr_accessor :access_token
       end
     end
-    meta.username = username =~ /@/ ? username : username + '@gmail.com'
-    meta.password = password
+    meta.access_token = access_token
+    meta.user_name = user_name
     @imap = Net::IMAP.new('imap.gmail.com',993,true,nil,false)
     if block_given?
       login # This is here intentionally. Normally, we get auto logged-in when first needed.
@@ -25,6 +48,7 @@ class Gmail
       logout
     end
   end
+
 
   ###########################
   #  READING EMAILS
@@ -92,7 +116,11 @@ class Gmail
   #  LOGIN
   ###########################
   def login
-    res = @imap.login(meta.username, meta.password)
+    # res = @imap.login(meta.username, meta.password)
+    # Net::IMAP.authenticate is defined on net/imap.rb l.395
+    puts 'user_name ' + meta.user_name
+    puts 'access_token ' + meta.access_token
+    res = @imap.authenticate('XOAUTH2', meta.user_name , meta.access_token)
     @logged_in = true if res && res.name == 'OK'
   end
   def logged_in?
