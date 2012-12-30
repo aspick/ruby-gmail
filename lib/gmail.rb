@@ -35,12 +35,12 @@ class Gmail
     # Could be helpful when demoing the gem in irb, these bits won't show up that way.
     class << self
       class << self
-        attr_accessor :user_name # gmail address 
+        attr_accessor :username # gmail address 
         attr_accessor :access_token
       end
     end
     meta.access_token = access_token
-    meta.user_name = user_name
+    meta.username = user_name
     @imap = Net::IMAP.new('imap.gmail.com',993,true,nil,false)
     if block_given?
       login # This is here intentionally. Normally, we get auto logged-in when first needed.
@@ -118,9 +118,7 @@ class Gmail
   def login
     # res = @imap.login(meta.username, meta.password)
     # Net::IMAP.authenticate is defined on net/imap.rb l.395
-    puts 'user_name ' + meta.user_name
-    puts 'access_token ' + meta.access_token
-    res = @imap.authenticate('XOAUTH2', meta.user_name , meta.access_token)
+    res = @imap.authenticate('XOAUTH2', meta.username , meta.access_token)
     @logged_in = true if res && res.name == 'OK'
   end
   def logged_in?
@@ -195,8 +193,8 @@ class Gmail
       :port => 587,
       :domain => domain,
       :user_name => meta.username,
-      :password => meta.password,
-      :authentication => 'plain',
+      :password => meta.access_token,
+      :authentication => 'XOAUTH2',
       :enable_starttls_auto => true}]
     end
 end
